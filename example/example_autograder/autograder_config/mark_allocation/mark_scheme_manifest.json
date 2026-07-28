@@ -1,0 +1,10 @@
+{
+  "assessment": "gradescope_autograder",
+  "total_marks": 10,
+  "mark_scheme_directory": "mark_allocation/mark_scheme",
+  "sections": ["section1.json", "section2.json"],
+  "scoring_defaults": {
+    "bundle_scoring": "all_or_nothing"
+  },
+  "notes": "Example bakery exam demonstrating the autograder. Not real assessment material."
+}

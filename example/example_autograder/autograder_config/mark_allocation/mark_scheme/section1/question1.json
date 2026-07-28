@@ -1,0 +1,59 @@
+{
+  "section_id": "section1",
+  "question_id": "question1",
+  "question_number": 1,
+  "title": "Question 1",
+  "total_marks": 5.0,
+  "parts": [
+    {
+      "part_id": "a",
+      "title": "Part a",
+      "total_marks": 1.0,
+      "bundles": [
+        {
+          "bundle_id": "a_1",
+          "bundle_number": 1,
+          "marks": 1.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section1.question1.a.PastryTypeTest.testEnumExists",
+            "section1.question1.a.PastryTypeTest.testEnumIsEnum",
+            "section1.question1.a.PastryTypeTest.testEnumValues"
+          ]
+        }
+      ]
+    },
+    {
+      "part_id": "b",
+      "title": "Part b",
+      "total_marks": 4.0,
+      "bundles": [
+        {
+          "bundle_id": "b_1",
+          "bundle_number": 1,
+          "marks": 2.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section1.question1.b.PastryTest.testClassExists",
+            "section1.question1.b.PastryTest.testClassIsPublic",
+            "section1.question1.b.PastryTest.testNameFieldIsPrivate",
+            "section1.question1.b.PastryTest.testPriceFieldHasDoubleType",
+            "section1.question1.b.PastryTest.testConstructorExists",
+            "section1.question1.b.PastryTest.testGetPriceReturnsDouble"
+          ]
+        },
+        {
+          "bundle_id": "b_2",
+          "bundle_number": 2,
+          "marks": 2.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section1.question1.b.PastryTest.testConstructorStoresName",
+            "section1.question1.b.PastryTest.testConstructorStoresPrice",
+            "section1.question1.b.PastryTest.testConstructorStoresType"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "section_id": "section2",
+  "section_number": 2,
+  "title": "Section 2",
+  "total_marks": 5,
+  "directory": "section2",
+  "questions": [
+    {
+      "question_id": "question2",
+      "question_number": 2,
+      "title": "Question 2",
+      "total_marks": 5.0,
+      "file": "section2/question2.json"
+    }
+  ]
+}

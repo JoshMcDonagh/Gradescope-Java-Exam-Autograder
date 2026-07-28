@@ -1,0 +1,10 @@
+{
+  "assessment": "",
+  "total_marks": 0,
+  "mark_scheme_directory": "mark_allocation/mark_scheme",
+  "sections": [""],
+  "scoring_defaults": {
+    "bundle_scoring": ""
+  },
+  "notes": ""
+}

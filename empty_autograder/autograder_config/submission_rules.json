@@ -1,0 +1,43 @@
+{
+  "expected_package_statement_template": "package {expected_package};",
+
+  "expected_packages": {},
+
+  "submission_root": "",
+
+  "skip_dirs": [
+    "META-INF",
+    "libs",
+    "sample_classes",
+    "src",
+    "bin",
+    "test-outputs",
+    "junit-report",
+    "__MACOSX"
+  ],
+
+  "skip_files": [
+    ".DS_Store",
+    "submission_metadata.yml",
+    "manage_fallbacks.py",
+    "run_autograder",
+    "run.sh",
+    "setup.sh",
+    "metadata.yml"
+  ],
+
+  "rules": {
+    "remove_class_files": true,
+    "append_java_extension_to_extensionless_files": true,
+    "capitalise_java_filenames": true,
+    "move_loose_java_files": true,
+    "create_missing_package_dirs": true,
+    "fix_package_statements": true,
+    "rename_single_unexpected_top_level_dir": true,
+    "move_misplaced_subpackage_dirs": true
+  },
+
+  "logging": {
+    "outputs": ["stdout", "file"]
+  }
+}

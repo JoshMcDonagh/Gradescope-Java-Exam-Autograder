@@ -1,0 +1,55 @@
+{
+  "section_id": "section2",
+  "question_id": "question2",
+  "question_number": 2,
+  "title": "Question 2",
+  "total_marks": 5.0,
+  "parts": [
+    {
+      "part_id": "a",
+      "title": "Part a",
+      "total_marks": 2.0,
+      "bundles": [
+        {
+          "bundle_id": "a_1",
+          "bundle_number": 1,
+          "marks": 2.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section2.question2.a.BakeryTest.testClassExists",
+            "section2.question2.a.BakeryTest.testClassIsPublic",
+            "section2.question2.a.BakeryTest.testPastriesFieldIsPrivateList",
+            "section2.question2.a.BakeryTest.testConstructorExists",
+            "section2.question2.a.BakeryTest.testConstructorInitialisesEmptyList"
+          ]
+        }
+      ]
+    },
+    {
+      "part_id": "b",
+      "title": "Part b",
+      "total_marks": 3.0,
+      "bundles": [
+        {
+          "bundle_id": "b_1",
+          "bundle_number": 1,
+          "marks": 1.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section2.question2.b.BakeryTest.testAddPastryStoresPastry"
+          ]
+        },
+        {
+          "bundle_id": "b_2",
+          "bundle_number": 2,
+          "marks": 2.0,
+          "scoring": "all_or_nothing",
+          "tests": [
+            "section2.question2.b.BakeryTest.testTotalStockValueIsZeroWhenEmpty",
+            "section2.question2.b.BakeryTest.testTotalStockValueSumsPrices"
+          ]
+        }
+      ]
+    }
+  ]
+}

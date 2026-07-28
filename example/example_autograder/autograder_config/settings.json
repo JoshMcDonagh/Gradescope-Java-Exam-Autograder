@@ -1,0 +1,7 @@
+{
+  "source_dirs": ["bakery"],
+  "extra_packages": {
+    "apt": [],
+    "pip": []
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "source_dirs": [""],
+  "extra_packages": {
+    "apt": [],
+    "pip": []
+  }
+}

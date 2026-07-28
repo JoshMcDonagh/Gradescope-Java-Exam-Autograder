@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "/autograder/source/"
+cp -r "/autograder/submission/"/* .
+
+echo
+echo "Contents of source directory:"
+ls -lR
+echo
+
+(
+set +e +u +o pipefail
+
+TEST_DIR="autograder_config/junit_tests"
+FALLBACK_ROOT="autograder_config/fallback_classes"
+SETTINGS_FILE="autograder_config/settings.json"
+LIBS_DIR="libs"
+BIN_MAIN="bin/main"
+BIN_TEST="bin/test"
+COMPILE_OUTPUT="compile_output.txt"
+TEST_COMPILE_OUTPUT="test_compile_output.txt"
+
+FALLBACK_TRACK_FILE="$BIN_MAIN/.fallback_used.txt"
+MISSING_FILES_LOG="missing_fallbacks.txt"
+FAILING_CLASSES_LOG="failing_classes_pass1.txt"
+
+echo "=== Cleaning build artifacts ==="
+rm -rf ./bin ./junit-report ./test-outputs "$COMPILE_OUTPUT" "$TEST_COMPILE_OUTPUT"
+mkdir -p ./test-outputs "$BIN_MAIN" "$BIN_TEST" ./junit-report
+
+: > "$MISSING_FILES_LOG"
+: > "$FAILING_CLASSES_LOG"
+: > "$FALLBACK_TRACK_FILE"
+
+if [ ! -f "$SETTINGS_FILE" ]; then
+  echo "[ERROR] $SETTINGS_FILE not found."
+  echo "        It must define \"source_dirs\": the location(s) of the student code to mark,"
+  echo "        e.g. { \"source_dirs\": [\"bakery\"] }"
+  exit 1
+fi
+
+mapfile -t source_dirs < <(python3 - "$SETTINGS_FILE" <<'PY'
+import json, sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as fh:
+        cfg = json.load(fh)
+except Exception as exc:
+    print(f"[ERROR] Could not parse {sys.argv[1]}: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+dirs = cfg.get("source_dirs")
+if not isinstance(dirs, list) or not dirs or \
+        not all(isinstance(d, str) and d.strip() for d in dirs):
+    print('[ERROR] "source_dirs" must be a non-empty list of path strings '
+          f"in {sys.argv[1]}.", file=sys.stderr)
+    sys.exit(1)
+
+for d in dirs:
+    print(d.strip().rstrip("/"))
+PY
+)
+
+if [ "${#source_dirs[@]}" -eq 0 ]; then
+  echo "[ERROR] Failed to read \"source_dirs\" from $SETTINGS_FILE — see the message above."
+  exit 1
+fi
+
+fallback_dirs=()
+for fd in "$FALLBACK_ROOT"/*/; do
+  [ -d "$fd" ] || continue
+  fallback_dirs+=( "${fd%/}" )
+done
+
+if [ "${#fallback_dirs[@]}" -eq 0 ]; then
+  echo "[ERROR] No fallback packages found under $FALLBACK_ROOT/."
+  exit 1
+fi
+
+for fd in "${fallback_dirs[@]}"; do
+  pkg=$(basename "$fd")
+  found=0
+  for sd in "${source_dirs[@]}"; do
+    [ "$(basename "$sd")" = "$pkg" ] && { found=1; break; }
+  done
+  if [ "$found" -eq 0 ]; then
+    echo "[WARNING] Fallback package '$pkg' has no matching entry in source_dirs (${source_dirs[*]})."
+    echo "          All of its classes will be substituted with fallbacks and skipped in marking."
+  fi
+done
+
+echo "[DEBUG] Source roots: ${source_dirs[*]}"
+echo "[DEBUG] Fallback dirs: ${fallback_dirs[*]}"
+
+echo "Fixing Windows-style filenames with backslashes..."
+while IFS= read -r -d '' file; do
+  newpath=$(echo "$file" | sed 's|\\|/|g')
+  dir=$(dirname "$newpath")
+  mkdir -p "$dir"
+  mv "$file" "$newpath"
+done < <(find . -type f -name '*\\*.java' -print0)
+
+for sd in "${source_dirs[@]}"; do
+  if [ -d "$sd/$sd" ]; then
+    echo "Flattening nested '$sd/$sd/'..."
+    mv "$sd/$sd"/* "$sd/"
+    rmdir "$sd/$sd"
+  fi
+done
+
+echo "Running autofix step..."
+PYTHONPATH=./src/python python3 -m submission_checker.submission_check -s .
+
+LIB_CP=$(find "$LIBS_DIR" -name "*.jar" | paste -sd ":" -)
+if [ -n "$LIB_CP" ]; then
+  FULL_CP=".:$LIB_CP:$BIN_MAIN:$BIN_TEST"
+else
+  FULL_CP=".:$BIN_MAIN:$BIN_TEST"
+fi
+
+echo "Compiling student code and managing fallbacks..."
+
+sd_args=()
+for sd in "${source_dirs[@]}"; do
+  sd_args+=( --source-dir "$sd" )
+done
+
+fallback_args=()
+for fd in "${fallback_dirs[@]}"; do
+  fallback_args+=( --fallback-dir "$fd" )
+done
+
+python3 src/python/compiler/student_code_compiler.py \
+  "${sd_args[@]}" \
+  "${fallback_args[@]}" \
+  --compile-output "$COMPILE_OUTPUT" \
+  --missing-log "$MISSING_FILES_LOG" \
+  --failing-log "$FAILING_CLASSES_LOG" \
+  --track-file "$FALLBACK_TRACK_FILE" \
+  --classpath "$FULL_CP"
+
+echo "Compiling test files and helpers..."
+python3 src/python/compiler/test_compiler.py \
+  --test-dir "$TEST_DIR" \
+  --output-dir "$BIN_TEST" \
+  --classpath "$FULL_CP" \
+  --log-file "$TEST_COMPILE_OUTPUT"
+
+echo "Running all test classes..."
+python3 src/python/compiler/run_tests_and_log.py \
+  --bin-test "$BIN_TEST" \
+  --test-src-dir "$TEST_DIR" \
+  --classpath "$FULL_CP" \
+  --output-dir "./test-outputs"
+
+echo "Running fallback comparison..."
+python3 src/python/compiler/run_fallback_test_comparison.py \
+  "${sd_args[@]}" \
+  --bin-main "$BIN_MAIN" \
+  --bin-test "$BIN_TEST" \
+  "${fallback_args[@]}" \
+  --test-src-dir "$TEST_DIR" \
+  --test-output-dir ./test-outputs \
+  --classpath "$FULL_CP" \
+  --compile-output "$COMPILE_OUTPUT" \
+  --original-results ./test-outputs
+
+echo ""
+echo "==================== SUMMARY ===================="
+echo "Fallbacks used for:"
+cat "$FALLBACK_TRACK_FILE"
+
+echo ""
+echo "Compilation errors:"
+grep "error:" "$COMPILE_OUTPUT" || echo "No compile errors"
+
+echo ""
+echo "Test compilation errors:"
+grep "error:" "$TEST_COMPILE_OUTPUT" || echo "No test compile errors"
+echo "================================================="
+)
+
+echo "Running Python automarker to generate results.json..."
+PYTHONPATH=./src/python python3 -m automarker.automark
+
+if [ ! -f ./results.json ]; then
+  echo "ERROR: results.json was not generated!" >&2
+  exit 1
+fi
+
+cp ./results.json /autograder/results/results.json

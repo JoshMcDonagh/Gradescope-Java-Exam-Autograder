@@ -1,0 +1,10 @@
+The University of Manchester holds copyright; see LICENSE.
+
+Contributors:
+
+  Joshua McDonagh <joshua.mcdonagh@manchester.ac.uk>
+    Autograder framework, compiler pipeline, fallback comparison,
+    mark scheme validation, test suites.
+
+  Dr. Sarah Clinch <sarah.clinch@manchester.ac.uk>
+    Original basis for the submission checker and automarker.
