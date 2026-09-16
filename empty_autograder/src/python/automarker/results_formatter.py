@@ -86,6 +86,9 @@ def _build_test_output_text(graded_item: dict[str, Any]) -> str:
         return 'Test passed'
     failures = graded_item['failures']
     if not failures:
+        crash_message = graded_item.get('crash_message')
+        if crash_message:
+            return _escape_html(crash_message)
         return 'No test output found. Possible compilation error?'
     first_failure = failures[0]
     failing_name = first_failure.get('fqn', first_failure.get('name', ''))
